@@ -31,7 +31,7 @@ public class PersistedUserGroupTableListPanel extends TableListPanel<PersistedUs
 
 	public PersistedUserGroupTableListPanel(String id,
 			ListGeneratorInterface<PersistedUserGroup> listGenerator) {
-		super(id, listGenerator);
+		super(id, listGenerator, null);
 		// TODO Auto-generated constructor stub
 	}
 

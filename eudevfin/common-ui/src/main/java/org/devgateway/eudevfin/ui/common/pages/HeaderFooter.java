@@ -186,6 +186,11 @@ public abstract class HeaderFooter<T> extends GenericWebPage<T> {
 		} else if (beanSession != null && beanRequest != null && beanSession.getLocale() != null) {
 			// THIS IS AN UGLY HACK NEEDS ANOTHER SOLUTION
 			beanRequest.setLocale(beanSession.getLocale());
+		} else {
+			final String default_locale = "lt";
+			if (!Session.get().getLocale().getLanguage().equals(default_locale)) {
+				Session.get().setLocale(new Locale(default_locale));
+			}
 		}
 	}
 

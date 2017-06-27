@@ -12,9 +12,11 @@ package org.devgateway.eudevfin.ui.common.components;
 
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.list.Loop;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.util.ListModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.devgateway.eudevfin.common.service.PagingHelper;
 import org.devgateway.eudevfin.common.service.PagingItem;
 import org.devgateway.eudevfin.ui.common.components.util.ListGeneratorInterface;
@@ -31,12 +33,32 @@ public abstract class TableListPanel<T> extends Panel implements PageableCompone
 
     private static final long serialVersionUID = -779595395189185422L;
 
+    private static final String DESKTOP_LAST_TX_BY_DRAFT		= "desktop.lastTxByDraft";
+    private static final String DESKTOP_LAST_TX_BY_FINAL		= "desktop.lastTxByFinal";
+    private static final String DESKTOP_LAST_TX_BY_APPROVED		= "desktop.lastTxByApproved";
     public static final int PAGE_SIZE = 10;
     public static final int FIRST_PAGE = 1;
 
     protected ListView<T> itemsListView;
 
+    public List<T> getItems() {
+        return items;
+    }
+
+    public void setItems(List<T> items) {
+        this.items = items;
+    }
+
     protected List<T> items = null;
+
+    public List<PagingItem> getPagingItems() {
+        return pagingItems;
+    }
+
+    public void setPagingItems(List<PagingItem> pagingItems) {
+        this.pagingItems = pagingItems;
+    }
+
     protected List<PagingItem> pagingItems = null;
     protected ListGeneratorInterface<T> listGenerator = null;
 
@@ -47,7 +69,7 @@ public abstract class TableListPanel<T> extends Panel implements PageableCompone
         ;
     }
 
-    public TableListPanel(String id, ListGeneratorInterface<T> listGenerator) {
+    public TableListPanel(String id, ListGeneratorInterface<T> listGenerator, PageParameters pageParameters) {
         super(id);
         this.setOutputMarkupId(true);
 
@@ -56,7 +78,20 @@ public abstract class TableListPanel<T> extends Panel implements PageableCompone
         items = new ArrayList<T>();
         pagingItems = new ArrayList<PagingItem>();
 
-        populate(FIRST_PAGE);
+        int pageNumber = FIRST_PAGE;
+        if (pageParameters != null && !pageParameters.get("reuseItems").isNull()){
+            if (id == "tabContentPanel" && getSession().getAttribute("tabContent") != null) {
+                if (pageParameters.get("tabKey").toString().equals(DESKTOP_LAST_TX_BY_DRAFT) && ((TableListPanel)((Loop) getSession().getAttribute("tabContent")).get(0).get("tabContentPanel")).getPagingItems().size() > 0){
+                    pageNumber = ((PagingItem)((TableListPanel)((Loop) getSession().getAttribute("tabContent")).get(0).get("tabContentPanel")).getPagingItems().get(0)).getCurrentPageNo();
+                } else if (pageParameters.get("tabKey").toString().equals(DESKTOP_LAST_TX_BY_FINAL) && ((TableListPanel)((Loop) getSession().getAttribute("tabContent")).get(1).get("tabContentPanel")).getPagingItems().size() > 0) {
+                    pageNumber = ((PagingItem)((TableListPanel)((Loop) getSession().getAttribute("tabContent")).get(1).get("tabContentPanel")).getPagingItems().get(0)).getCurrentPageNo();
+                } else if (pageParameters.get("tabKey").toString().equals(DESKTOP_LAST_TX_BY_APPROVED) && ((TableListPanel)((Loop) getSession().getAttribute("tabContent")).get(2).get("tabContentPanel")).getPagingItems().size() > 0) {
+                    pageNumber = ((PagingItem)((TableListPanel)((Loop) getSession().getAttribute("tabContent")).get(2).get("tabContentPanel")).getPagingItems().get(0)).getCurrentPageNo();
+                }
+            }
+            pageParameters.set("tabKey", null);
+        }
+        populate(pageNumber);
     }
 
 
@@ -94,6 +129,10 @@ public abstract class TableListPanel<T> extends Panel implements PageableCompone
         this.pagingItems.clear();
 
         PagingHelper<T> results = this.listGenerator.getResultsList(pageNumber, PAGE_SIZE);
+        if (pageNumber > 1 && results.getTotalNumOfEntities() == 0) {
+            results = this.listGenerator.getResultsList(pageNumber-1, PAGE_SIZE);
+        }
+
         if (results != null && results.getTotalNumOfEntities() > 0) {
             this.items.addAll(results.getEntities());
             this.pagingItems.addAll(results.createPagingItems());

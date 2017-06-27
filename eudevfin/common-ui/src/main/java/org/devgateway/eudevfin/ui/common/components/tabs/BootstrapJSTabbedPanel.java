@@ -21,6 +21,7 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.devgateway.eudevfin.ui.common.components.PermissionAwareLabel;
 
 /**
@@ -43,7 +44,7 @@ public class BootstrapJSTabbedPanel<T extends ITabWithKey> extends Panel {
      * @param tabs list of tabs to render
      */
     @SuppressWarnings("WicketForgeJavaIdInspection")
-    public BootstrapJSTabbedPanel(String id, final List<T> tabs) {
+    public BootstrapJSTabbedPanel(String id, final List<T> tabs, PageParameters pageParameters) {
         super(id);
         this.setOutputMarkupId(true);
 
@@ -69,13 +70,21 @@ public class BootstrapJSTabbedPanel<T extends ITabWithKey> extends Panel {
 
         final String markupId = this.getMarkupId();
 
+        int customIndex = 0;
+        if (pageParameters != null && !pageParameters.get("reuseItems").isNull()){
+            if (id.equals("tops-panel") && getSession().getAttribute("transactionsListTabIndex") != null) {
+                customIndex = (int) getSession().getAttribute("transactionsListTabIndex");
+            }
+        }
+
+        final int finalCustomIndex = customIndex;
         add(new Loop("tabNames", tabCount) {
             @Override
             protected void populateItem(LoopItem item) {
                 final int index = item.getIndex();
                 final T tab = BootstrapJSTabbedPanel.this.tabs.get(index);
 
-                if (index == 0)
+                if (index == finalCustomIndex)
                     item.add(new AttributeModifier("class", getSelectedTabCssClass()));
 
                 Label label = new PermissionAwareLabel("tabNamesLink", tab.getTitle(), tab.getKey());
@@ -91,7 +100,7 @@ public class BootstrapJSTabbedPanel<T extends ITabWithKey> extends Panel {
                 final int index = item.getIndex();
                 final T tab = BootstrapJSTabbedPanel.this.tabs.get(index);
 
-                if (index == 0)
+                if (index == finalCustomIndex)
                     item.add(new AttributeAppender("class", Model.of(getSelectedTabCssClass()), " "));
 
                 item.add(new AttributeModifier("id", getTabId(markupId, index)));

@@ -37,9 +37,6 @@ public class PopulateDAC2aRows extends AbstractSpringCustomTaskChange {
 
 	@Autowired
 	private AreaDaoImpl areaDao;
-	
-	@Autowired
-	private CategoryDaoImpl catDao;
 
 	@Autowired
 	private ChannelCategoryDao channelCatDao;

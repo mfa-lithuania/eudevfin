@@ -43,16 +43,17 @@ public class IatiTransformationStarter implements ITransformationStarter {
 	@Override
 	public IatiTransformationStarter prepareTransformation(final Filter filter, final CustomFinancialTransactionService txService) {
 		final LocalDateTime now = LocalDateTime.now();
-		
+
 		this.finalList = new ArrayList<EntityWrapperInterface<?>>();
-		
-		final List<CustomFinancialTransaction> txList = 
-				txService.findByApprovedTrueAndFormTypeInOrderByCrsIdAscCreatedDateAsc( this.getAllowedFormTypes() );
+
+		final List<CustomFinancialTransaction> txList = filter.getYear() == null ? txService.findByApprovedTrueAndFormTypeInOrderByCrsIdAscCreatedDateAsc(this.getAllowedFormTypes()) :
+				txService.findByReportingYearAndApprovedTrueAndFormTypeInOrderByCrsIdAscCreatedDateAsc(filter.getYear(), this.getAllowedFormTypes());
+
 		new EntityWrapperListHelper<CustomFinancialTransaction>(txList, "iati-export", now, "en")
 				.addToWrappedList(this.finalList);
-		
+
 		return this;
-		
+
 	}
 
 	private Collection<String> getAllowedFormTypes() {

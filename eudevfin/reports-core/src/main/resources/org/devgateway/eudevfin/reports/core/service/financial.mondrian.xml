@@ -498,6 +498,22 @@
                 </SQL>
             </MeasureExpression>
         </Measure>
+        <Measure name="Non-flow data GNI" aggregator="avg" visible="false" datatype="Integer" caption="Non-flow data GNI">
+            <MeasureExpression>
+                <SQL dialect="generic">
+                    (SELECT
+                    amounts_extended_amount
+                    from
+                    financialtransaction ft,
+                    category cat
+                    where
+                    ft.typeofflow_id = cat.id
+                    and cat.code = 'TYPE_OF_FLOW##40'
+                    and YEAR(ft.reportingyear) = YEAR("FINANCIALTRANSACTIONVIEW"."REPORTINGYEAR")
+                    and ft.createddate = (select max(ft2.createddate) from financialtransaction ft2 where ft2.typeofflow_id = ft.typeofflow_id and ft.reportingyear = ft2.reportingyear))
+                </SQL>
+            </MeasureExpression>
+        </Measure>
         <Measure name="Extended Amount No Flow" aggregator="sum" visible="false">
             <MeasureExpression>
                 <SQL dialect="generic">

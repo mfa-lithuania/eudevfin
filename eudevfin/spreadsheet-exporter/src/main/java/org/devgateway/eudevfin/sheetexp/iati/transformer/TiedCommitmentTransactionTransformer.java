@@ -22,6 +22,7 @@ import org.devgateway.eudevfin.sheetexp.iati.domain.IatiActivity;
 import org.devgateway.eudevfin.sheetexp.iati.domain.Transaction;
 import org.devgateway.eudevfin.sheetexp.iati.transformer.util.Conditions;
 import org.joda.money.BigMoney;
+import org.joda.time.DateTimeZone;
 
 /**
  * @author alexandru-m-g
@@ -47,7 +48,7 @@ public class TiedCommitmentTransactionTransformer extends
 	 */
 	@Override
 	protected Date findTxDate() {
-		return this.getCtx().getCommitmentDate().toDate();
+		return this.getCtx().getCommitmentDate().toDate(DateTimeZone.UTC.toTimeZone());
 	}
 
 	/* (non-Javadoc)

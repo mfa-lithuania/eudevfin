@@ -107,6 +107,10 @@
             <int:header name="requestName"
                         value="findCustomTransactionByReportingYearAndApprovedTrueAndFormTypeInChannel"/>
         </int:method>
+        <int:method name="findByReportingYearAndApprovedTrueAndFormTypeInOrderByCrsIdAscCreatedDateAsc" request-channel="getChannel">
+            <int:header name="requestName"
+                        value="findCustomTransactionByReportingYearAndApprovedTrueAndFormTypeInOrderByCrsIdentificationNumberAscCreatedDateAscChannel"/>
+        </int:method>
         <int:method name="findByApprovedTrueAndFormTypeInOrderByCrsIdAscCreatedDateAsc" request-channel="getChannel">
             <int:header name="requestName"
                         value="findCustomTransactionByApprovedTrueAndFormTypeInlOrderByCrsIdentificationNumberAscCreatedDateAscChannel"/>
@@ -137,15 +141,6 @@
         </int:method>
         <int:method name="findByDonorIdCrsIdActive" request-channel="getChannel">
             <int:header name="requestName" value="findTransactionByDonorIdCrsIdActiveChannel"/>
-        </int:method>        
-        <int:method name="findUsedOrgByGeographicFocusAndFinancingInstitution" request-channel="getChannel">
-            <int:header name="requestName" value="findUsedOrgByGeographicFocusAndFinancingInstitutionChannel"/>
-        </int:method>
-        <int:method name="findOne" request-channel="getChannel">
-            <int:header name="requestName" value="findOneCustomFinancialTransactionChannel"/>
-        </int:method>
-        <int:method name="findTransactionsByProjectIDPageable" request-channel="getChannel">
-            <int:header name="requestName" value="findTransactionsByProjectIDPageableChannel"/>
         </int:method>
     </int:gateway>
 

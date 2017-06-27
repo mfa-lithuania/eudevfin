@@ -34,7 +34,7 @@ public abstract class AbstractInputField<T,  FIELD extends FormComponent<T>> ext
      * @param id    component id
      * @param model associated
      */
-    protected AbstractInputField(String id, IModel<T> model) {
+    AbstractInputField(String id, IModel<T> model) {
         this(id, model, id);
         setOutputMarkupId(true);
     }
@@ -53,7 +53,7 @@ public abstract class AbstractInputField<T,  FIELD extends FormComponent<T>> ext
      * @param model component's model
      * @param messageKeyGroup Message key group prefix for the resources used by the component
      */
-    protected AbstractInputField(String id, IModel<T> model, String messageKeyGroup) {
+    AbstractInputField(String id, IModel<T> model, String messageKeyGroup) {
         super(id, model, messageKeyGroup);
 
         placeholderText = new StringResourceModel(messageKeyGroup + ".placeholder", this, null, "");

@@ -19,5 +19,5 @@
     <entry key="phone.label">Phone Number</entry>
     <entry key="page.title">Edit User Details</entry>
     <entry key="PasswordPatternValidator">Password must contain 1 digit, 1 lower caps letter, 1 upper caps letter, 1 symbol
-		"@#$%" and must be from 6 to 20 characters long</entry>                
+        "@#$%" and must be from 6 to 20 characters long</entry>
 </properties>

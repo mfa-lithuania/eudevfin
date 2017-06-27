@@ -25,15 +25,19 @@ import com.thoughtworks.xstream.converters.extended.ToAttributedValueConverter;
 @XStreamConverter(value=ToAttributedValueConverter.class, strings={"value"})
 public class ActivityDate {
 	
+	@XStreamAlias("iso-date")
+	@XStreamAsAttribute
+	private Date isoDate;
+	private Date value;
+
 	@XStreamAsAttribute
 	private String type;
-	
-	private Date value;
-	
-	public ActivityDate(final String type, final Date value) {
+
+	public ActivityDate(final String type, final Date value, final Date isoDate) {
 		super();
-		this.type = type;
 		this.value = value;
+		this.isoDate = isoDate;
+		this.type = type;
 	}
 
 	public String getType() {
@@ -51,7 +55,13 @@ public class ActivityDate {
 	public void setValue(final Date value) {
 		this.value = value;
 	}
-	
-	
-	
+
+	public Date getIsoDate() {
+		return this.isoDate;
+	}
+
+	public void setIsoDate(final Date isoDate) {
+		this.isoDate = isoDate;
+	}
+
 }

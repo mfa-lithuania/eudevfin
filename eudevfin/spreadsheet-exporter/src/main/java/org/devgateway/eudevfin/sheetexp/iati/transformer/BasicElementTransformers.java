@@ -27,6 +27,7 @@ import org.devgateway.eudevfin.sheetexp.iati.domain.ReportingOrg;
 import org.devgateway.eudevfin.sheetexp.iati.domain.Sector;
 import org.devgateway.eudevfin.sheetexp.iati.domain.StringWithLanguage;
 import org.devgateway.eudevfin.sheetexp.iati.transformer.util.Conditions;
+import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
 
 /**
@@ -70,16 +71,10 @@ public class BasicElementTransformers {
 							Conditions.IS_NEWER_OR_SAME_REP_YEAR(this.getCtx(), this.getLatestYear())) ){
 
 				final String value	= this.getCtx().getCrsIdentificationNumber();
-				final Organization org  = this.getCtx().getExtendingAgency();
-                                final String acronym    = org.getAcronym();
-                                String orgRef;
-                                if ("MAE".equals(acronym)) {
-                                    orgRef = "XM-DAC-" + org.getDonorCode();
-                                } else { 
-                                    orgRef = org.getDonorCode() + "-" + acronym;
-                                }
+				final Organization org = this.getCtx().getExtendingAgency();
+//				final String orgRef = org.getDonorCode() + "-" + org.getAcronym();
 				if ( value != null && !"".equals(value.trim()) ) {
-					this.getIatiActivity().setIatiIdentifier(orgRef + "-" + value);
+					this.getIatiActivity().setIatiIdentifier("XM-DAC-84-" + value);
 				}
 			}
 
@@ -340,21 +335,69 @@ public class BasicElementTransformers {
 		public void process() {
 			final Organization org = this.getCtx().getExtendingAgency();
 			if (org != null) {
-                            String acronym = org.getAcronym();
-                            String orgRef;
-                                if ("MAE".equals(acronym)) {
-                                    orgRef = "XM-DAC-" + org.getDonorCode();
-                                } else { 
-                                    orgRef = org.getDonorCode() + "-" + acronym;
-                                }
+//				final String ref = org.getDonorCode() + "-" + org.getAcronym();
+				final String ref = "XM-DAC-84";
 				final ReportingOrg existingOrg = this.getIatiActivity().getReportingOrg();
 				if ( existingOrg == null || Conditions.SHOULD_OVERWRITE_TRANSACTION(this.getCtx()) ) {
 					final ReportingOrg newOrg = new ReportingOrg("10",
-							orgRef, org.getName());
+							ref, "Ministry of Foreign Affairs of the Republic of Lithuania");
 					this.getIatiActivity().setReportingOrg(newOrg);
 				}
 			}
 
+		}
+
+	}
+
+	public static class ExtendingOrganization extends AbstractElementTransformer {
+
+		public ExtendingOrganization(final CustomFinancialTransaction ctx,
+								   final IatiActivity iatiActivity, final Map<String, Object> paramsMap) {
+			super(ctx, iatiActivity, paramsMap);
+		}
+
+		@Override
+		public void process() {
+			final ParticipatingOrg newParticipatingOrg = this.getParticipatingOrg();
+			if (newParticipatingOrg != null) {
+
+				List<ParticipatingOrg> participatingOrgs = this.getIatiActivity().getParticipatingOrgs();
+				if ( participatingOrgs == null ) {
+					participatingOrgs = new ArrayList<>();
+					this.getIatiActivity().setParticipatingOrgs(participatingOrgs);
+				}
+				boolean found = false;
+				for (final ParticipatingOrg currentOrg: participatingOrgs) {
+					if( this.getRole().equals(currentOrg.getRole()) ) {
+						if ( newParticipatingOrg.getRef().equals(currentOrg.getRef()) ) {
+							found = true;
+						}
+						else if (Conditions.IS_REVISION(this.getCtx())) {
+							currentOrg.setRef(newParticipatingOrg.getRef());
+							currentOrg.setValue(newParticipatingOrg.getValue());
+						}
+					}
+				}
+				if ( !found ) {
+					participatingOrgs.add(newParticipatingOrg);
+				}
+
+			}
+
+		}
+
+		public String getRole(){
+			return "Extending";
+		}
+
+		public ParticipatingOrg getParticipatingOrg() {
+			final Organization org = this.getCtx().getExtendingAgency();
+			if ( org != null) {
+//				final String ref = org.getDonorCode() + "-" + org.getAcronym();
+				final String ref = "XM-DAC-84";
+				return new ParticipatingOrg("10", this.getRole(), ref, org.getName());
+			}
+			return null;
 		}
 
 	}
@@ -403,14 +446,9 @@ public class BasicElementTransformers {
 		public ParticipatingOrg getParticipatingOrg() {
 			final Organization org = this.getCtx().getExtendingAgency();
 			if ( org != null) {
-                            String acronym = org.getAcronym();
-                            String orgRef;
-                            if ("MAE".equals(acronym)) {
-                                orgRef = "XM-DAC-" + org.getDonorCode();
-                            } else {
-                                orgRef = org.getDonorCode() + "-" + acronym;
-                            }
-                            return new ParticipatingOrg(this.getRole(), orgRef, org.getName() );
+//				final String ref = org.getDonorCode() + "-" + org.getAcronym();
+				final String ref = "XM-DAC-84";
+				return new ParticipatingOrg("10", this.getRole(), ref, null);
 			}
 			return null;
 		}
@@ -433,7 +471,7 @@ public class BasicElementTransformers {
 		public ParticipatingOrg getParticipatingOrg() {
 			final ChannelCategory implementingOrg = this.getCtx().getChannel();
 			if (implementingOrg != null) {
-				return new ParticipatingOrg(this.getRole(),
+				return new ParticipatingOrg(null, this.getRole(),
 						implementingOrg.getDisplayableCode(), implementingOrg.getName() );
 			}
 			return null;
@@ -560,7 +598,7 @@ public class BasicElementTransformers {
 					}
 				}
 				if ( !found ) {
-					dates.add(new ActivityDate(this.getDateType(), startTime.toDate()) );
+					dates.add(new ActivityDate(this.getDateType(), null, startTime.toDate(DateTimeZone.UTC.toTimeZone())) );
 				}
 			}
 		}

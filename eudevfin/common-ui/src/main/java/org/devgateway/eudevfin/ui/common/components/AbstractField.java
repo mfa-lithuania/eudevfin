@@ -37,7 +37,7 @@ public abstract class AbstractField<T, FIELD extends FormComponent<T>> extends P
     final Component prepender;
     private final Component appender;
     private final DetailedHelpControlGroup controlGroup;
-    protected FIELD field;
+    FIELD field;
     protected final MarkupContainer xPenderController;
     protected Label readOnlyRendition;
 
@@ -49,7 +49,7 @@ public abstract class AbstractField<T, FIELD extends FormComponent<T>> extends P
      * @param messageKeyGroup Message key group prefix for the resources used by the component
      * @see org.devgateway.eudevfin.ui.common.components.TextInputField for example on how messageKeyGroup is used
      */
-    protected AbstractField(String id, IModel<T> model, String messageKeyGroup) {
+    AbstractField(String id, IModel<T> model, String messageKeyGroup) {
         super(id, model);
         //this.setRenderBodyOnly(true);
 

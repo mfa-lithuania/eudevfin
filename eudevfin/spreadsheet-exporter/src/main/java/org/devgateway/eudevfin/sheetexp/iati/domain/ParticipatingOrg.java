@@ -8,23 +8,36 @@
 package org.devgateway.eudevfin.sheetexp.iati.domain;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import com.thoughtworks.xstream.annotations.XStreamConverter;
 import com.thoughtworks.xstream.converters.extended.ToAttributedValueConverter;
 
 @XStreamAlias("participating-org")
 @XStreamConverter(value=ToAttributedValueConverter.class, strings={"value"})
 public class ParticipatingOrg extends AbstractWithLanguage {
+	@XStreamAsAttribute
+	private String type;
+
 	private String value;
 
 	private String role;
 
 	private String ref;
 
-	public ParticipatingOrg(final String role, final String ref, final String value) {
+	public ParticipatingOrg(final String type, final String role, final String ref, final String value) {
 		super();
+		this.type = type;
 		this.value = value;
 		this.role = role;
 		this.ref = ref;
+	}
+
+	public String getType() {
+		return this.type;
+	}
+
+	public void setType(final String type) {
+		this.type = type;
 	}
 
 	public String getValue() {

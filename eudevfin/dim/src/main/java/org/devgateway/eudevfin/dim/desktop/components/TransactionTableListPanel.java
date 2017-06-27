@@ -42,20 +42,24 @@ public class TransactionTableListPanel<T extends FinancialTransaction> extends T
 
 	private static final Logger logger	= Logger.getLogger(TransactionTableListPanel.class);
 
+	public static final String PARAM_TABKEY = "tabKey";
+
 	/**
 	 * @param id
 	 * @param listGenerator
 	 */
 	public TransactionTableListPanel(final String id,
-			final ListGeneratorInterface<T> listGenerator) {
-		super(id, listGenerator);
+			final ListGeneratorInterface<T> listGenerator,
+			final PageParameters pageParameters) {
+		super(id, listGenerator, pageParameters);
 		// TODO Auto-generated constructor stub
 	}
 
 	public static <R extends FinancialTransaction> ITabWithKey newTab(
 			final Component askingComponent,
 			final String key,
-			final ListGeneratorInterface<R> listGenerator) {
+			final ListGeneratorInterface<R> listGenerator,
+			final PageParameters pageParameters) {
 
 		return new AbstractTabWithKey(new StringResourceModel(key,
 				askingComponent, null), key) {
@@ -64,7 +68,8 @@ public class TransactionTableListPanel<T extends FinancialTransaction> extends T
 
 			@Override
 			public WebMarkupContainer getPanel(final String panelId) {
-				return new TransactionTableListPanel<R>(panelId, listGenerator);
+				pageParameters.set(PARAM_TABKEY, this.getKey());
+				return new TransactionTableListPanel<R>(panelId, listGenerator, pageParameters);
 			}
 		};
 	}
@@ -82,10 +87,12 @@ public class TransactionTableListPanel<T extends FinancialTransaction> extends T
 				// maybe we need to subclass this page and create a custom table
 				// for custom transactions
 				// for the moment we play dumb and use instanceof
-
+				getSession().setAttribute("searchBoxPanel", ((SearchBoxPanel) getPage().get("search-box-panel")));
+				getSession().setAttribute("tabContent", getPage().get("tops-panel").get("tabContent"));
 				if (tempTx instanceof CustomFinancialTransaction) {
 					pageParameters.add(Constants.PARAM_TRANSACTION_TYPE,
 							((CustomFinancialTransaction) tempTx).getFormType());
+					getSession().setAttribute("transactionsListTabIndex", TransactionPage.calculateTransactionsListTab(tempTx));
 					this.setResponsePage(CustomTransactionPage.class, pageParameters);
 				} else {
 					this.setResponsePage(TransactionPage.class, pageParameters);
@@ -101,7 +108,6 @@ public class TransactionTableListPanel<T extends FinancialTransaction> extends T
 		this.add( ComponentsUtil.generateLabel("txtable.tx.reporting-year", "transaction-reporting-year-label", this) );
 		this.add( ComponentsUtil.generateLabel("txtable.tx.sector-name", "transaction-sector-name-label", this) );
 		this.add( ComponentsUtil.generateLabel("txtable.tx.reporting-org-name", "transaction-organization-name-label", this) );
-                this.add( ComponentsUtil.generateLabel("txtable.tx.extended-amount", "transaction-extended-amount-label", this) );
 		this.add( ComponentsUtil.generateLabel("txtable.tx.actions", "transaction-actions-label", this) );
 
 	}
@@ -138,10 +144,6 @@ public class TransactionTableListPanel<T extends FinancialTransaction> extends T
 				final String extAgencyName 			= tempTx.getExtendingAgency() != null ? tempTx.getExtendingAgency().getName() : " - ";
 				final Label orgLabel				= new Label("transaction-organization-name", extAgencyName );
 				ftListItem.add(orgLabel);
-                                
-                                final String extendedAmount 			= tempTx.getAmountsExtended() != null ?  tempTx.getAmountsExtended().getAmount().toString(): " - ";
-				final Label extendedAmountLabel			= new Label("transaction-extended-amount", extendedAmount );
-				ftListItem.add(extendedAmountLabel);
 
 
 				final Link editLink = TransactionTableListPanel.this.getTransactionEditLink(tempTx);

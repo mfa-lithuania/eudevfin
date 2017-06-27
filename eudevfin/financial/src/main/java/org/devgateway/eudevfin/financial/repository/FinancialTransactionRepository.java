@@ -11,7 +11,6 @@
 package org.devgateway.eudevfin.financial.repository;
 
 import java.util.List;
-import org.devgateway.eudevfin.financial.CustomFinancialTransaction;
 
 import org.devgateway.eudevfin.financial.FinancialTransaction;
 import org.joda.time.LocalDateTime;
@@ -51,5 +50,5 @@ public interface FinancialTransactionRepository extends
 //			@Param("extendingAgency") Organization extendingAgency, Pageable pageable);
 //	
 
-
+	
 }

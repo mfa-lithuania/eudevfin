@@ -32,7 +32,7 @@ public class OrganizationTableListPanel extends TableListPanel<Organization> {
 
 	public OrganizationTableListPanel(String id,
 			ListGeneratorInterface<Organization> listGenerator) {
-		super(id, listGenerator);
+		super(id, listGenerator, null);
 		// TODO Auto-generated constructor stub
 	}
 

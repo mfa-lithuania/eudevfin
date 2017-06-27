@@ -74,6 +74,7 @@ public class TransactionPage extends HeaderFooter<FinancialTransaction> implemen
 
     public static final String PARAM_TRANSACTION_ID = "transactionId";
     public static final String PARAM_REUSE = "reuse";
+    public static final String PARAM_REUSE_ITEMS = "reuseItems";
 
     public final String onUnloadScript;
 
@@ -382,7 +383,7 @@ public class TransactionPage extends HeaderFooter<FinancialTransaction> implemen
 
         List<ITabWithKey> tabList = populateTabList(parameters);
 
-        BootstrapJSTabbedPanel<ITabWithKey> bc = new BootstrapJSTabbedPanel<>("bc", tabList)
+        BootstrapJSTabbedPanel<ITabWithKey> bc = new BootstrapJSTabbedPanel<>("bc", tabList, null)
                 .positionTabs(BootstrapJSTabbedPanel.Orientation.RIGHT);
         form.add(bc);
 
@@ -393,6 +394,11 @@ public class TransactionPage extends HeaderFooter<FinancialTransaction> implemen
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 logger.info("Submit pressed");
                 FinancialTransaction transaction = (FinancialTransaction) form.getInnermostModel().getObject();
+                if (parameters.get(PARAM_TRANSACTION_ID).isNull()) {
+                    getSession().setAttribute("transactionsListTabIndex", calculateTransactionsListTab(transaction));
+                    getSession().setAttribute("searchBoxPanel", null);
+                    getSession().setAttribute("tabContent", null);
+                }
                 Message message = prepareMessage(transaction);
                 super.onSubmit(target, form);
                 message = checkNewId(message, transaction);
@@ -401,7 +407,9 @@ public class TransactionPage extends HeaderFooter<FinancialTransaction> implemen
                     //send the message if any
                     if (message != null)
                         mxService.save(message);
-                    setResponsePage(HomePage.class);
+                    PageParameters pageParameters = new PageParameters();
+                    pageParameters.add(PARAM_REUSE_ITEMS, true);
+                    setResponsePage(HomePage.class, pageParameters);
                 }
             }
 
@@ -432,7 +440,36 @@ public class TransactionPage extends HeaderFooter<FinancialTransaction> implemen
         saveButton.setDefaultFormProcessing(false);
         form.add(saveButton);
 
-        TransactionPageDeleteButton transactionPageDeleteButton = new TransactionPageDeleteButton("delete", new StringResourceModel("button.delete", this, null, null));
+        TransactionPageDeleteButton transactionPageDeleteButton = new TransactionPageDeleteButton("delete", new StringResourceModel("button.delete", this, null, null)) {
+            private static final long serialVersionUID = 1076134119844959564L;
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                FinancialTransaction transaction = (FinancialTransaction) form.getInnermostModel().getObject();
+                if (parameters.get(PARAM_TRANSACTION_ID).isNull()) {
+                    getSession().setAttribute("transactionsListTabIndex", calculateTransactionsListTab(transaction));
+                    getSession().setAttribute("searchBoxPanel", null);
+                    getSession().setAttribute("tabContent", null);
+                }
+                logger.debug("Object:" + transaction);
+                logger.info("Deleting!");
+                PageParameters pageParameters = new PageParameters();
+                pageParameters.add(PARAM_REUSE_ITEMS, true);
+                setResponsePage(HomePage.class, pageParameters);
+                try {
+                    if (transaction.getId() == null) return;
+                    financialTransactionService.delete(transaction);
+                    info(new NotificationMessage(new StringResourceModel("notification.deleted", TransactionPage.this, null, null)));
+                    target.add(feedbackPanel);
+                    // clear the mondrian cache
+                    mondrianCacheUtil.flushMondrianCDACache();
+                } catch (Exception e) {
+                    logger.error("Exception while trying to delete:", e);
+                    return;
+                }
+                logger.info("Deleted ok!");
+            }
+        };
         MetaDataRoleAuthorizationStrategy.authorize(transactionPageDeleteButton, Component.ENABLE, AuthConstants.Roles.ROLE_TEAMLEAD);
         form.add(transactionPageDeleteButton);
 
@@ -442,7 +479,16 @@ public class TransactionPage extends HeaderFooter<FinancialTransaction> implemen
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 logger.info("Cancel pressed");
-                setResponsePage(HomePage.class);
+                if (parameters.get(PARAM_TRANSACTION_ID).isNull()) {
+                    FinancialTransaction transaction = (FinancialTransaction) form.getInnermostModel().getObject();
+                    getSession().setAttribute("transactionsListTabIndex", calculateTransactionsListTab(transaction));
+                    getSession().setAttribute("searchBoxPanel", null);
+                    getSession().setAttribute("tabContent", null);
+                }
+
+                PageParameters pageParameters = new PageParameters();
+                pageParameters.add(PARAM_REUSE_ITEMS, true);
+                setResponsePage(HomePage.class, pageParameters);
             }
 
         });
@@ -493,4 +539,16 @@ public class TransactionPage extends HeaderFooter<FinancialTransaction> implemen
         response.render(OnDomReadyHeaderItem.forScript(
                 onUnloadScript));
     }
+
+    public static int calculateTransactionsListTab (FinancialTransaction transaction) {
+        int status = 1;
+
+        if (((CustomFinancialTransaction) transaction).getApproved()) {
+            status = 2;
+        } else if (((CustomFinancialTransaction) transaction).getDraft()) {
+            status = 0;
+        }
+
+        return status;
+    };
 }

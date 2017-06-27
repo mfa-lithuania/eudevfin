@@ -13,6 +13,7 @@ import java.util.List;
 
 import org.apache.wicket.authroles.authorization.strategies.role.annotations.AuthorizeInstantiation;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.devgateway.eudevfin.auth.common.domain.AuthConstants;
 import org.devgateway.eudevfin.auth.common.domain.PersistedUser;
@@ -39,7 +40,7 @@ import org.wicketstuff.annotation.mount.MountPath;
 @MountPath(value = "/home")
 @AuthorizeInstantiation(AuthConstants.Roles.ROLE_USER)
 public class HomePage extends HeaderFooter {
-
+	
 	private static final long serialVersionUID = -7339282093922672085L;
 
 	private static final String DESKTOP_LAST_TX_BY_DRAFT		= "desktop.lastTxByDraft";
@@ -53,47 +54,52 @@ public class HomePage extends HeaderFooter {
 
     @SpringBean
     protected OrganizationService orgService;
-
+    
     @SpringBean
     protected CategoryService categoryService;
-
+    
     @SpringBean
 	private CategoryProviderFactory categoryFactory;
-
+    
     @SpringBean
     private OrganizationChoiceProvider organizationProvider;
-
+    
     @SpringBean
     private AreaChoiceProvider areaProvider;
+    
 
+    public HomePage(final PageParameters parameters) {
+		super();
+		if (parameters.isEmpty()) {
 
-    public HomePage() {
-        super();
-		this.populateTopsPanel();
+			for (String attribute: getSession().getAttributeNames()) {
+				getSession().setAttribute(attribute, null);
+			}
+		}
+		this.populateTopsPanel(parameters);
     }
 
-    protected void populateTopsPanel() {
+    protected void populateTopsPanel(final PageParameters parameters) {
 
     	List<ITabWithKey> tabList = new ArrayList<>();
 
     	boolean superUser=AuthUtils.currentUserHasRole(AuthConstants.Roles.ROLE_SUPERVISOR);
     	PersistedUser currentUser = AuthUtils.getCurrentUser();
-
 		tabList.add(TransactionTableListPanel.<CustomFinancialTransaction> newTab(this, DESKTOP_LAST_TX_BY_DRAFT,
-				new DraftListGenerator(true, currentUser.getGroup(), this.customTxService, superUser)));
+				new DraftListGenerator(true, currentUser.getGroup(), this.customTxService, superUser),parameters));
 		tabList.add(TransactionTableListPanel.<CustomFinancialTransaction> newTab(this, DESKTOP_LAST_TX_BY_FINAL,
-				new DraftListGenerator(false, currentUser.getGroup(), this.customTxService, superUser)));
+				new DraftListGenerator(false, currentUser.getGroup(), this.customTxService, superUser),parameters));
 		tabList.add(TransactionTableListPanel.<CustomFinancialTransaction> newTab(this, DESKTOP_LAST_TX_BY_APPROVED,
-				new ApprovedListGenerator(true, currentUser.getGroup(), this.customTxService, superUser)));
+				new ApprovedListGenerator(true, currentUser.getGroup(), this.customTxService, superUser),parameters));
 
-   	BootstrapJSTabbedPanel<ITabWithKey> bc = new BootstrapJSTabbedPanel<>("tops-panel", tabList).
+   	BootstrapJSTabbedPanel<ITabWithKey> bc = new BootstrapJSTabbedPanel<>("tops-panel", tabList, parameters).
                 positionTabs(BootstrapJSTabbedPanel.Orientation.RIGHT);
-
+    	
     	this.add(bc);
-
+    	
     	GeneralSearchListGenerator generalSearchListGenerator	= new GeneralSearchListGenerator(customTxService);
-    	this.add(new SearchBoxPanel("search-box-panel",
-    			new TransactionTableListPanel<FinancialTransaction>("search-results-panel",generalSearchListGenerator),
-    			generalSearchListGenerator,categoryFactory,organizationProvider,areaProvider));
+    	this.add(new SearchBoxPanel("search-box-panel", 
+    			new TransactionTableListPanel<FinancialTransaction>("search-results-panel",generalSearchListGenerator, null),
+    			generalSearchListGenerator,categoryFactory,organizationProvider,areaProvider,parameters));
     }
 }

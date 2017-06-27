@@ -33,7 +33,7 @@ public class GroupingTransactionTableListPanel<T extends FinancialTransaction> e
 	 * @param listGenerator
 	 */
 	public GroupingTransactionTableListPanel(String id, ListGeneratorInterface<T> listGenerator) {
-		super(id, listGenerator);
+		super(id, listGenerator, null);
 	}
 
 	

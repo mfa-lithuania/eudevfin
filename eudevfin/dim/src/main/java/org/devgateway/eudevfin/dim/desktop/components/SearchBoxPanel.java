@@ -7,7 +7,7 @@
  *******************************************************************************/
 
 /**
- *
+ * 
  */
 package org.devgateway.eudevfin.dim.desktop.components;
 
@@ -17,6 +17,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.devgateway.eudevfin.auth.common.domain.AuthConstants;
 import org.devgateway.eudevfin.auth.common.util.AuthUtils;
@@ -42,7 +43,6 @@ import org.devgateway.eudevfin.ui.common.providers.YearProvider;
 import org.joda.time.LocalDateTime;
 
 import de.agilecoders.wicket.core.markup.html.bootstrap.form.InputBehavior;
-import java.util.List;
 
 /**
  * @author Alex,mihai
@@ -54,13 +54,16 @@ public class SearchBoxPanel extends Panel {
 	private TableListPanel<?> resultsPanel;
 	private GeneralSearchListGenerator listGenerator;
 	private WebMarkupContainer searchWrapperPanel;
+	private SearchBoxPanelForm searchBoxPanelForm;
+	private SearchBoxPanel searchBoxPanel;
+	private boolean reuseItems;
 
 	private CategoryProviderFactory categoryFactory;
-
+	
     private OrganizationChoiceProvider organizationProvider;
-
+    
 	private AreaChoiceProvider areaProvider;
-
+	
 	@SpringBean
 	private CustomFinancialTransactionService txService;
 	private boolean superUser;
@@ -69,13 +72,13 @@ public class SearchBoxPanel extends Panel {
 
 	/**
 	 * @param id
-	 * @param generalSearchListGenerator
-	 * @param categoryFactory
+	 * @param generalSearchListGenerator 
+	 * @param categoryFactory 
 	 * @param areaProvider
-	 * @param organizationProvider
+	 * @param organizationProvider 
 	 */
 	public SearchBoxPanel(String id, TableListPanel<?> resultsPanel, GeneralSearchListGenerator generalSearchListGenerator,
-			CategoryProviderFactory categoryFactory, OrganizationChoiceProvider organizationProvider, AreaChoiceProvider areaProvider) {
+						  CategoryProviderFactory categoryFactory, OrganizationChoiceProvider organizationProvider, AreaChoiceProvider areaProvider, PageParameters pageParameters) {
         super(id);
         this.resultsPanel		= resultsPanel;
 		this.listGenerator		= generalSearchListGenerator;
@@ -84,71 +87,101 @@ public class SearchBoxPanel extends Panel {
 		this.categoryFactory=categoryFactory;
 		this.organizationProvider=organizationProvider;
 		this.areaProvider=areaProvider;
+		SearchBoxPanelForm searchBoxPanelForm = new SearchBoxPanelForm();
+		if (!pageParameters.get("reuseItems").isNull()){
+			this.reuseItems=true;
+			this.searchBoxPanel = ((SearchBoxPanel) getSession().getAttribute("searchBoxPanel"));
+			if (this.searchBoxPanel != null) {
+				searchBoxPanelForm = this.searchBoxPanel.searchBoxPanelForm;
+			}
+		}
+		this.searchBoxPanelForm=searchBoxPanelForm;
 		this.populate(null);
 		this.setOutputMarkupId(true);
 	}
-
-
+	
+	
 	protected void populate(String searchString) {
 		this.resultsPanel.setVisible(false);
 		this.searchWrapperPanel.add(this.resultsPanel);
 		this.add(this.searchWrapperPanel);
 
 	 	superUser=AuthUtils.currentUserHasRole(AuthConstants.Roles.ROLE_SUPERVISOR);
+	 	
+		final SearchBoxPanelForm boxPanelForm= this.searchBoxPanelForm;
+		if (this.reuseItems) {
+			if (this.searchBoxPanel != null) {
+				int currentPageNo = this.searchBoxPanel.resultsPanel.getPagingItems().size() > 0 ? this.searchBoxPanel.resultsPanel.getPagingItems().get(0).getCurrentPageNo() : 0;
+				if (currentPageNo != 0 && ((boxPanelForm.getSearchString() != null && boxPanelForm.getSearchString().length() > 1)
+						|| boxPanelForm.getSector() != null || boxPanelForm.getYear() != null
+						|| boxPanelForm.getRecipient() != null || boxPanelForm.getFormType() != null
+						|| boxPanelForm.getExtendingAgency() != null)) {
+					this.listGenerator.setSearchBoxPanelForm(boxPanelForm);
+					this.resultsPanel.generateListOfItems(currentPageNo);
+					if (this.resultsPanel.getItems().size() == 0 && currentPageNo > 1) {
+						this.resultsPanel.generateListOfItems(currentPageNo - 1);
+					}
+					if (this.resultsPanel.getItems().size() == 0 && currentPageNo == 1) {
+						this.resultsPanel.setVisible(false);
+					} else {
+						this.resultsPanel.setVisible(true);
+					}
+				}
+			}
+		}
 
-		final SearchBoxPanelForm boxPanelForm=new SearchBoxPanelForm();
 		CompoundPropertyModel<SearchBoxPanelForm> boxPanelFormModel=new CompoundPropertyModel<SearchBoxPanelForm>(boxPanelForm);
 		Form<?> form = new Form<>("searchForm",boxPanelFormModel);
 		form.setOutputMarkupId(false);
-
-
+		
+		  
 		final DropDownField<Integer> year = new DropDownField<Integer>("year", new YearToLocalDateTimeModel(new RWComponentPropertyModel<LocalDateTime>(
 				"year")), new YearProvider(this.txService.findAllDistinctReportingYears()));
 		year.setSize(InputBehavior.Size.Medium);
    		year.removeSpanFromControlGroup();
    		year.hideLabel();
 		form.add(year);
-
+		
 		final DropDownField<Category> sectorPurposeCode = new DropDownField<>("sector",
 				new RWComponentPropertyModel<Category>("sector"), categoryFactory.get(CategoryConstants.ALL_SECTOR_TAG));
 		//sectorPurposeCode.setSize(InputBehavior.Size.Medium);
 		sectorPurposeCode.hideLabel();
 		sectorPurposeCode.removeSpanFromControlGroup();
 		form.add(sectorPurposeCode);
-
+		
 		final TextInputField<String> searchInputField	= new TextInputField<String>("searchString", new RWComponentPropertyModel<String>(
 				"searchString"), "desktop.search");
         searchInputField.typeString();
         searchInputField.setSize(InputBehavior.Size.Medium);
         searchInputField.hideLabel();
         searchInputField.removeSpanFromControlGroup();
-		form.add(searchInputField);
-
+		form.add(searchInputField);		
+			 	
         extendingAgency = new DropDownField<>("extendingAgency",
                 new RWComponentPropertyModel<Organization>("extendingAgency"), organizationProvider);
         //extendingAgency.setSize(InputBehavior.Size.Medium);
         extendingAgency.hideLabel();
         extendingAgency.removeSpanFromControlGroup();
-
-
-        form.add(extendingAgency);
-
+    	
+        
+        form.add(extendingAgency);              
+    	
         final DropDownField<String> formType = new DropDownField<>("formType",
                 new RWComponentPropertyModel<String>("formType"), new FormTypeProvider(this));
         formType.setSize(InputBehavior.Size.Medium);
         formType.hideLabel();
         formType.removeSpanFromControlGroup();
         form.add(formType);
-
-
+        
+        
 		final DropDownField<Area> recipient = new DropDownField<>("recipient", new RWComponentPropertyModel<Area>(
 				"recipient"), areaProvider);
 		recipient.setSize(InputBehavior.Size.Medium);
 		recipient.hideLabel();
 		recipient.removeSpanFromControlGroup();
         form.add(recipient);
-
-
+        
+		
 		BootstrapSubmitButton submitButton = new BootstrapSubmitButton("submit",new StringResourceModel("desktop.searchbutton", this,null)) {
 
 			private static final long serialVersionUID = -1342816632002116152L;
@@ -168,10 +201,10 @@ public class SearchBoxPanel extends Panel {
 		            	SearchBoxPanel.this.resultsPanel.setVisible(false);
 		            target.add(SearchBoxPanel.this.searchWrapperPanel);
 				}
-
-			};
+				
+			};		
 		form.add(submitButton);
-
+		
 		BootstrapCancelButton resetButton = new BootstrapCancelButton("reset", new StringResourceModel("desktop.resetbutton", this,null)) {
 
 			private static final long serialVersionUID = -7554180087300408868L;
@@ -193,13 +226,13 @@ public class SearchBoxPanel extends Panel {
 	            	SearchBoxPanel.this.resultsPanel.setVisible(false);
 	            	target.add(SearchBoxPanel.this.searchWrapperPanel);
 				}
-
-			};
+				
+			};		
 		form.add(resetButton);
-
+        
 		this.add(form);
 	}
-
+	
 	@Override
 	protected void onConfigure() {
 		super.onConfigure();
@@ -209,4 +242,12 @@ public class SearchBoxPanel extends Panel {
     	}
 	}
 
+	public SearchBoxPanelForm getSearchBoxPanelForm() {
+		return searchBoxPanelForm;
+	}
+
+	public void setSearchBoxPanelForm(SearchBoxPanelForm searchBoxPanelForm) {
+		this.searchBoxPanelForm = searchBoxPanelForm;
+	}
+	
 }

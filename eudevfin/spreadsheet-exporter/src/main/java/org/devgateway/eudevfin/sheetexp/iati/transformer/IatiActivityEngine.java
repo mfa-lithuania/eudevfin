@@ -80,6 +80,7 @@ public class IatiActivityEngine {
 				new BasicElementTransformers.AssociatedFinancing(ctx, iatiActivity, params),
 				new BasicElementTransformers.ReportingOrganization(ctx, iatiActivity, params),
 				new BasicElementTransformers.FundingOrganization(ctx, iatiActivity, params),
+				new BasicElementTransformers.ExtendingOrganization(ctx, iatiActivity, params),
 				new BasicElementTransformers.ImplementingOrganization(ctx, iatiActivity, params),
 				new BasicElementTransformers.Sectors(ctx, iatiActivity, params),
 				new BasicElementTransformers.Collaboration(ctx, iatiActivity, params),

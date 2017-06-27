@@ -7,7 +7,7 @@
  *******************************************************************************/
 
 /**
- * 
+ *
  */
 package org.devgateway.eudevfin.sheetexp.ui;
 
@@ -43,7 +43,7 @@ import de.agilecoders.wicket.core.markup.html.bootstrap.button.Buttons;
 
 /**
  * @author Alex
- * 
+ *
  */
 @MountPath(value = "/spreadsheets")
 @AuthorizeInstantiation(AuthConstants.Roles.ROLE_USER)
@@ -58,7 +58,7 @@ public class ExportSpreadsheetsPage extends HeaderFooter {
 
 	public ExportSpreadsheetsPage(final PageParameters parameters) {
 		super(parameters);
-		
+
 		this.generalInit(parameters.get(MetadataConstants.REPORT_TYPE_PARAM).toString(MetadataConstants.FSS_REPORT_TYPE));
 	}
 
@@ -83,7 +83,7 @@ public class ExportSpreadsheetsPage extends HeaderFooter {
 
 			/*
 			 * (non-Javadoc)
-			 * 
+			 *
 			 * @see org.apache.wicket.markup.html.form.Form#onSubmit()
 			 */
 			@Override
@@ -99,7 +99,7 @@ public class ExportSpreadsheetsPage extends HeaderFooter {
                 RequestCycle.get().scheduleRequestHandlerAfterCurrent(null);
 
 			}
-			
+
 			private ITransformationStarter getTransformationStarter() {
 				if ( MetadataConstants.IATI_REPORT_TYPE.equals(this.getModelObject().getExportType()) )  {
 					return new IatiTransformationStarter();
@@ -107,7 +107,7 @@ public class ExportSpreadsheetsPage extends HeaderFooter {
 					return new TransformationStarter();
 				}
 			}
-			
+
 
 		};
 
@@ -123,11 +123,11 @@ public class ExportSpreadsheetsPage extends HeaderFooter {
 	private DropDownField<Integer> createYearField(final Model<Filter> formModel) {
 		final DropDownField<Integer> year = new DropDownField<Integer>("year-filter", new PropertyModel<Integer>(
 				formModel, "year"), new YearProvider(this.txService.findDistinctReportingYears()));
-		year.required();
-		year.removeSpanFromControlGroup();
-		if ( MetadataConstants.IATI_REPORT_TYPE.equals(formModel.getObject().getExportType()) ) {
-			year.setVisible(false);
+		if (!MetadataConstants.IATI_REPORT_TYPE.equals(formModel.getObject().getExportType())) {
+			year.required();
 		}
+		year.removeSpanFromControlGroup();
+
 		return year;
 	}
 
@@ -148,5 +148,5 @@ public class ExportSpreadsheetsPage extends HeaderFooter {
 		button.setLabel(Model.of(""));
 		return button;
 	}
-	
+
 }

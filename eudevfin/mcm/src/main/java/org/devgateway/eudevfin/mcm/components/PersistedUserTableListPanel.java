@@ -32,7 +32,7 @@ public class PersistedUserTableListPanel extends TableListPanel<PersistedUser> {
 
 	public PersistedUserTableListPanel(String id,
 			ListGeneratorInterface<PersistedUser> listGenerator) {
-		super(id, listGenerator);
+		super(id, listGenerator, null);
 		// TODO Auto-generated constructor stub
 	}
 

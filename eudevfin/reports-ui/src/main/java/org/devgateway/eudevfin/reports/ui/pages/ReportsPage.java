@@ -168,7 +168,7 @@ public class ReportsPage extends ReportsDashboards {
                                 Locale locale = LocaleContextHolder.getLocale();
                                 DecimalFormat twoDForm = (DecimalFormat) NumberFormat.getNumberInstance(locale);
                                 twoDForm.applyPattern("#.##");
-                                resultSet.get(i).add(Float.valueOf(twoDForm.format(result)) + "%");
+                                resultSet.get(i).add(twoDForm.format(result) + "%");
                             }
                         }
                     }
@@ -195,16 +195,11 @@ public class ReportsPage extends ReportsDashboards {
                             String item = resultSet.get(i).get(j);
 
                             if (item != null) {
-                                // len - 2 row is the 'ODA/GNI' row and we need to add the percentages
-                                if (i == len - 2) {
-                                    item = ReportsDashboardsUtils.AmountFormat(Float.parseFloat(resultSet.get(i).get(j)));
-                                    item += "%";
-                                } else {
-                                    item = ReportsDashboardsUtils.AmountFormat(Float.parseFloat(resultSet.get(i).get(j)));
-                                }
+                                item = ReportsDashboardsUtils.AmountFormat(Float.parseFloat(resultSet.get(i).get(j)));
 
                                 // len - 1 row is the 'Bilateral share' row and we need to add the percentages
-                                if (i == len - 1) {
+                                // len - 2 row is the 'ODA/GNI' row and we need to add the percentages
+                                if (i == len - 1 || i == len - 2) {
                                     item += "%";
                                 }
                                 resultSet.get(i).set(j, item);

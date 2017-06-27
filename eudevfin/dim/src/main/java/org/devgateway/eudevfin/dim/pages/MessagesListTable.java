@@ -51,7 +51,7 @@ public class MessagesListTable extends TableListPanel<Message> {
     private MessageService mxService;
 
     public MessagesListTable(String id, ListGeneratorInterface<Message> listGenerator) {
-        super(id, listGenerator);
+        super(id, listGenerator, null);
     }
 
     public void reloadMessageList(AjaxRequestTarget target) {

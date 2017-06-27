@@ -33,7 +33,7 @@ public class HistoricalExchangeRateTableListPanel extends TableListPanel<Histori
 	private static final long serialVersionUID = 7403189032489301520L;
 
 	public HistoricalExchangeRateTableListPanel(String id, ListGeneratorInterface<HistoricalExchangeRate> listGenerator) {
-		super(id, listGenerator);
+		super(id, listGenerator, null);
 		// TODO Auto-generated constructor stub
 	}
 
